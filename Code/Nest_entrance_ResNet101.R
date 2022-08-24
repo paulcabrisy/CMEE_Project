@@ -371,13 +371,7 @@ data15 <- data15[,-1]
 data16[c('Individual', 'bodypart', 'metric')] <- str_split_fixed(data16$individuals, '/', 3)
 data16 <- data16[,-1]
 
-
-###### combining the bodyparts together 
-
-#head$x <- as.numeric(head$x)
-#boxplot(head$x,main= "Rmse of Head")
-
-######## Do a scaterplot with the iterations 
+########  
 
 data1<-subset(data1, metric !="conf")
 data2<-subset(data2, metric !="conf")
@@ -436,17 +430,6 @@ colnames(data16) <- c('RMSE', 'Individual', 'bodypart', 'metric', 'Iters')
 
 ResNet101 <- rbind(data1, data2, data3, data4, data5, data6, data7, data8, data9, data10, data11, data12, data13, data14, data15, data16) # Merging all the iterations together 
 ResNet101$RMSE <- as.numeric(ResNet101$RMSE)
-#plot(ResNet101$RMSE ~ ResNet101$Iters) # the rmse goes samller as the iters go up
-
-#boxplot(ResNet101$RMSE ~ ResNet101$Iters, main= 'Boxplots of RMSE scores with ResNet_101', xlab= 'Iterations', ylab = 'RMSE')
-
-
-#### The data has a poisson distribution 
-
-#hist(data1$RMSE)
-#hist(ResNet101$RMSE)
-
-#summary(glm(ResNet101$RMSE ~ ResNet101$Iters, family = 'poisson')) # 
 
 #### Creating a combined model dataset
 

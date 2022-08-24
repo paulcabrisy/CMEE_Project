@@ -2,6 +2,10 @@ rm(list=ls())
 library("tidyverse")
 library('reshape2')
 library("ggplot2")
+library('ggpubr')
+library('cowplot')
+library('grDevices')
+
 
 dlcrnet_ms5_5000<- read.csv('/Volumes/Paul/Resnets/Tubes/dlcrnet_ms5/dist_5000.csv', header = FALSE)
 dlcrnet_ms5_8000<- read.csv('/Volumes/Paul/Resnets/Tubes/dlcrnet_ms5/dist_8000.csv', header = FALSE)
@@ -426,50 +430,17 @@ colnames(data14) <- c('RMSE', 'Individual', 'bodypart', 'metric', 'Iters')
 colnames(data15) <- c('RMSE', 'Individual', 'bodypart', 'metric', 'Iters')
 colnames(data16) <- c('RMSE', 'Individual', 'bodypart', 'metric', 'Iters')
 
-###### test 11 a 19 k jiters
-#test1 <- data15
-
-#test1$RMSE <- jitter(as.numeric(data16$RMSE))
-#test2$RMSE <- jitter(as.numeric(data16$RMSE))
-#test2<- data16
-
-#b <- jitter(a, 4)
-#a <- c(2,3,6)
-#c<- jitter(a,10)
-
-#data15$RMSE <- jitter(as.numeric(data15$RMSE))
-##data14$RMSE <- data14$RMSE* 1.2 
-#data13$RMSE <- jitter(as.numeric(data13$RMSE),30)
-#data12$RMSE <- jitter(as.numeric(data12$RMSE),5)
-#data11$RMSE <- jitter(as.numeric(data11$RMSE),0.5)
-#data10$RMSE <- jitter(as.numeric(data10$RMSE),0.5)
-#data9$RMSE <- jitter(as.numeric(data9$RMSE),13)
-#data8$RMSE <- jitter(as.numeric(data8$RMSE),12)
-#ßdata7$RMSE <- data7$RMSE* 3.1
-
-
-#data15$RMSE == data14$RMSE
-
-# par de 20000 et rajoute en poids
 
 ######
 
-
 dlcrnet_ms5 <- rbind(data1, data2, data3, data4, data5, data6, data7, data8, data9, data10, data11, data12, data13, data14, data15, data16) # Merging all the iterations together 
 dlcrnet_ms5$RMSE <- as.numeric(dlcrnet_ms5$RMSE)
-
 dlcrnet_ms5[,6]<- c('dlcrnet_ms5')
-
 colnames(dlcrnet_ms5) <- c('RMSE', 'Individual', 'bodypart', 'metric', 'Iters','Model')
-
 dlcrnet_ms5 <- na.omit(dlcrnet_ms5)
-
 saveRDS(Trap_dlcrnet_ms5, file = 'dlcrnet_ms5.rds')
 
-
-
 ############### creating a data frame with other models added
-
 
 ResNet101 <- readRDS(file = 'ResNet101.rds')
 ResNet50 <- readRDS(file = 'ResNet50.rds')
@@ -479,9 +450,7 @@ ResNet101 <- na.omit(ResNet101)
 ResNets <- rbind(dlcrnet_ms5, ResNet50,ResNet101) # combining all the datasets together for each model 
 ResNets <- na.omit(ResNets) # removing all NAs
 
-
 #### using ggplot with Dlcrent_ms5
-library(ggpubr)
 
 ggp <- ggplot(dlcrnet_ms5, aes(Iters, RMSE)) + 
   ggtitle('Performance change of Dlcrnet_ms5 with iteration parameter') + 
@@ -533,16 +502,12 @@ ggp3 <- ggplot(ResNet101, aes(Iters, RMSE)) +
   theme(plot.title = element_text(hjust = 0.5))+
   theme(axis.text.x = element_text(size = 10))
 
-
 ggp3 <- ggp3 + # Add polynomial regression curve
   stat_smooth(method = "lm",formula = y ~ poly(x, 4), color = c('red'), se = F)+
   stat_regline_equation(label.y = 30, aes(label = ..eq.label..)) +
   stat_regline_equation(label.y = 26, aes(label = ..rr.label..))
 
-###### Finding the best Iteration for each model
-
-library(cowplot)
-library(grDevices)
+###### Plotting the graohs together
 
 rud_both <- ggdraw() +
   draw_plot(ggp, x = 0, y = 0, width = 1, height = 0.33333) +
@@ -551,13 +516,12 @@ rud_both <- ggdraw() +
 
 rud_both
 
-###### Finding the best Model using a GLM
+######  GLM
 
 model <- glm(ResNets$RMSE ~ ResNets$Model* ResNets$Iters,  family = 'poisson') # the magnitude of change in rmse within models differ between models
 
 summary(model)
 
-######
 ######
 
 a <- subset.data.frame(ResNet50, ResNet50$Iters == '19000')
@@ -566,9 +530,7 @@ c <- subset.data.frame(dlcrnet_ms5, dlcrnet_ms5$Iters == '16000')
 
 Networks <- rbind(a,b,c)
 
-summary(glm(Networks$RMSE ~ Networks$Model,  family = 'poisson')) # all best model versions are significantly different to each other
-
-#boxplot(Networks$RMSE ~ Networks$Model, xlab = 'Optimised neural networks', ylab='Pixel Error (RMSE)') # after comparison the dlcrnet model is the best model as it has the smallest overall RMSE between models
+# boxplots
 
 p <- ggplot(Networks, aes(Model, RMSE))  +
     ggtitle('Comparison of optimised networks trained on tube videos') +
@@ -585,20 +547,11 @@ p <- ggplot(Networks, aes(Model, RMSE))  +
               map_signif_level=TRUE, textsize = 4, col="black", vjust = 0.1,  y_position = c(15, 16,15))
 
 p
-#
 
 
 #### Calculating the overall RMSE for each iteration of the ResNet_50 model
-
-########
 
 sum(ResNets$RMSE[ which(ResNets$Model == 'dlcrnet_ms5' & ResNets$Iters == '15000')])
 mean(ResNets$RMSE[ which(ResNets$Model == 'dlcrnet_ms5' & ResNets$Iters == '15000')])
 max(ResNets$RMSE[ which(ResNets$Model == 'dlcrnet_ms5' & ResNets$Iters == '15000')])
 min(ResNets$RMSE[ which(ResNets$Model == 'dlcrnet_ms5' & ResNets$Iters == '15000')])
-
-#####
-#####
-
-library('modelsummary')
-

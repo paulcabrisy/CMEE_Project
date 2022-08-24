@@ -2,6 +2,12 @@ rm(list=ls())
 library("tidyverse")
 library('reshape2')
 library("ggplot2")
+library('ggpubr')
+library('cowplot')
+library('grDevices')
+library('ggsignif')
+
+
 
 dlcrnet_ms5_5000<- read.csv('/Volumes/Paul/Resnets/Trap/dlcrnet_ms5/dist_5000.csv', header = FALSE)
 dlcrnet_ms5_8000<- read.csv('/Volumes/Paul/Resnets/Trap/dlcrnet_ms5/dist_8000.csv', header = FALSE)
@@ -426,50 +432,16 @@ colnames(data14) <- c('RMSE', 'Individual', 'bodypart', 'metric', 'Iters')
 colnames(data15) <- c('RMSE', 'Individual', 'bodypart', 'metric', 'Iters')
 colnames(data16) <- c('RMSE', 'Individual', 'bodypart', 'metric', 'Iters')
 
-###### test 11 a 19 k jiters
-#test1 <- data15
-
-#test1$RMSE <- jitter(as.numeric(data16$RMSE))
-#test2$RMSE <- jitter(as.numeric(data16$RMSE))
-#test2<- data16
-
-#b <- jitter(a, 4)
-#a <- c(2,3,6)
-#c<- jitter(a,10)
-
-#data15$RMSE <- jitter(as.numeric(data15$RMSE))
-##data14$RMSE <- data14$RMSE* 1.2 
-#data13$RMSE <- jitter(as.numeric(data13$RMSE),30)
-#data12$RMSE <- jitter(as.numeric(data12$RMSE),5)
-#data11$RMSE <- jitter(as.numeric(data11$RMSE),0.5)
-#data10$RMSE <- jitter(as.numeric(data10$RMSE),0.5)
-#data9$RMSE <- jitter(as.numeric(data9$RMSE),13)
-#data8$RMSE <- jitter(as.numeric(data8$RMSE),12)
-#ßdata7$RMSE <- data7$RMSE* 3.1
-
-
-#data15$RMSE == data14$RMSE
-
-# par de 20000 et rajoute en poids
-
-######
-
+### making a dataframe of all the iterations together
 
 dlcrnet_ms5 <- rbind(data1, data2, data3, data4, data5, data6, data7, data8, data9, data10, data11, data12, data13, data14, data15, data16) # Merging all the iterations together 
 dlcrnet_ms5$RMSE <- as.numeric(dlcrnet_ms5$RMSE)
-
 dlcrnet_ms5[,6]<- c('dlcrnet_ms5')
-
 colnames(dlcrnet_ms5) <- c('RMSE', 'Individual', 'bodypart', 'metric', 'Iters','Model')
-
 dlcrnet_ms5 <- na.omit(dlcrnet_ms5)
-
 saveRDS(dlcrnet_ms5, file = 'Trap_dlcrnet_ms5.rds')
 
-
-
 ############### creating a data frame with other models added
-
 
 ResNet101 <- readRDS(file = 'Trap_ResNet101.rds')
 ResNet50 <- readRDS(file = 'Trap_ResNet50.rds')
@@ -481,7 +453,6 @@ ResNets <- na.omit(ResNets) # removing all NAs
 
 
 #### using ggplot with Dlcrent_ms5
-library(ggpubr)
 
 ggp <- ggplot(dlcrnet_ms5, aes(Iters, RMSE)) + 
   ggtitle('Performance change of Dlcrnet_ms5 with iteration parameter') + 
@@ -538,10 +509,7 @@ ggp3 <- ggp3 + # Add polynomial regression curve
   stat_regline_equation(label.y = 100, aes(label = ..eq.label..)) +
   stat_regline_equation(label.y = 90, aes(label = ..rr.label..))
 
-###### Finding the best Iteration for each model
-
-library(cowplot)
-library(grDevices)
+###### combining the plots
 
 rud_both <- ggdraw() +
   draw_plot(ggp, x = 0, y = 0, width = 1, height = 0.33333) +
@@ -550,38 +518,8 @@ rud_both <- ggdraw() +
 
 rud_both
 
-# regression
 
-fit1 <- lm(ResNets$RMSE[which(ResNets$Model == 'resnet_50')] ~ ResNets$Iters[which(ResNets$Model == 'resnet_50')])
-plot(ResNets$RMSE[which(ResNets$Model == 'resnet_50')] ~ ResNets$Iters[which(ResNets$Model == 'resnet_50')], xlab='Iterations', ylab='RMSE scores', main = 'Performance change of ResNet_50 with iteration parameter')
-abline(fit1)
-
-poly_model1 <- lm(ResNets$RMSE[which(ResNets$Model == 'resnet_50')] ~ poly(ResNets$Iters[which(ResNets$Model == 'resnet_50')], 6))
-lines(fitted(poly_model1) ~ ResNets$Iters[which(ResNets$Model == 'resnet_50')], col='red')
-
-# Best iteration is 20 000
-
-# ResNet_101
-fit2 <-lm(ResNets$RMSE[which(ResNets$Model == 'resnet_101')] ~ ResNets$Iters[which(ResNets$Model == 'resnet_101')])
-plot(ResNets$RMSE[which(ResNets$Model == 'resnet_101')] ~ ResNets$Iters[which(ResNets$Model == 'resnet_101')], xlab='Iterations', ylab='RMSE scores', main = 'Performance change of ResNet_101 with iteration parameter')
-abline(fit2)
-
-poly_model2 <- lm(ResNets$RMSE[which(ResNets$Model == 'resnet_101')] ~ poly(ResNets$Iters[which(ResNets$Model == 'resnet_101')], 6))
-lines(fitted(poly_model2) ~ ResNets$Iters[which(ResNets$Model == 'resnet_101')], col='red')
-
-# Best iteration is 8000
-
-# Dlcrnet_ms5
-fit3 <- lm(ResNets$RMSE[which(ResNets$Model == 'dlcrnet_ms5')] ~ ResNets$Iters[which(ResNets$Model == 'dlcrnet_ms5')])
-plot(ResNets$RMSE[which(ResNets$Model == 'dlcrnet_ms5')] ~ ResNets$Iters[which(ResNets$Model == 'dlcrnet_ms5')], xlab='Iterations', ylab='RMSE scores', main = 'Performance change of Dlcrnet_ms5 with iteration parameter')
-abline(fit3)
-
-poly_model3 <- lm(ResNets$RMSE[which(ResNets$Model == 'dlcrnet_ms5')] ~ poly(ResNets$Iters[which(ResNets$Model == 'dlcrnet_ms5')], 6))
-lines(fitted(poly_model3) ~ ResNets$Iters[which(ResNets$Model == 'dlcrnet_ms5')], col='red')
-
-# Best iteration is 10 000 and 20 000
-
-###### Finding the best Model using a GLM
+###### GLM
 
 summary(glm(ResNets$RMSE ~ ResNets$Model* ResNets$Iters,  family = 'poisson')) # the magnitude of change in rmse within models differ between models
 
@@ -591,12 +529,7 @@ c <- subset.data.frame(dlcrnet_ms5, dlcrnet_ms5$Iters == '9000')
 
 Networks <- rbind(a,b,c)
 
-summary(glm(Networks$RMSE ~ Networks$Model,  family = 'poisson')) # all best model versions are significantly different to each other
-
-boxplot(Networks$RMSE ~ Networks$Model, xlab = 'Optimised neural networks', ylab='Pixel Error (RMSE)') # after comparison the dlcrnet model is the best model as it has the smallest overall RMSE between models
-
-library('ggsignif')
-
+### Boxplots 
 p <- ggplot(Networks, aes(Model, RMSE))  +
   ggtitle('Comparison of optimised networks trained on pollen trap videos') +
   xlab('Neural networks') +
@@ -613,27 +546,12 @@ p <- ggplot(Networks, aes(Model, RMSE))  +
 
 p
 
-geom_signif(comparisons = list(c(Networks$dlcrnet_ms5, Networks$resnet_101),
-                               c(Networks$dlcrnet_ms5, Networks$resnet_50),
-                               c(Networks$resnet_101, Networks$resnet_50)), 
-              map_signif_level=TRUE, textsize = 12, col="black")
 
+#### Calculating the overall RMSE for each iteration 
 
-#
-
-#### Calculating the overall RMSE for each iteration of the ResNet_50 model
-
-########
 
 sum(ResNets$RMSE[ which(ResNets$Model == 'dlcrnet_ms5' & ResNets$Iters == '9000')])
 mean(ResNets$RMSE[ which(ResNets$Model == 'dlcrnet_ms5' & ResNets$Iters == '9000')])
 max(ResNets$RMSE[ which(ResNets$Model == 'dlcrnet_ms5' & ResNets$Iters == '9000')])
 min(ResNets$RMSE[ which(ResNets$Model == 'dlcrnet_ms5' & ResNets$Iters == '9000')])
 
-#####
-#####
-
-my.mod<- glm(ResNets$RMSE ~ ResNets$Model* ResNets$Iters,  family = 'poisson') # the magnitude of change in rmse within models differ between models
-ResNets$Model <- factor(ResNets$Model)
-
-anova(my.mod, test="LRT")

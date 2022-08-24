@@ -434,9 +434,6 @@ colnames(data16) <- c('RMSE', 'Individual', 'bodypart', 'metric', 'Iters')
 
 ResNet50 <- rbind(data1, data2, data3, data4, data5, data6, data7, data8, data9, data10, data11, data12, data13, data14, data15, data16) # Merging all the iterations together 
 ResNet50$RMSE <- as.numeric(ResNet50$RMSE)
-
-#boxplot(ResNet50$RMSE ~ ResNet50$Iters, main= 'Boxplots of RMSE scores with ResNet_50', xlab= 'Iterations', ylab = 'RMSE')# the rmse goes samller as the iters go up
-
 ResNet50[,6]<- c('resnet_50')
 colnames(ResNet50) <- c('RMSE', 'Individual', 'bodypart', 'metric', 'Iters','Model')
 saveRDS(ResNet50, file = 'Trap_ResNet50.rds')

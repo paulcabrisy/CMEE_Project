@@ -371,12 +371,6 @@ data15 <- data15[,-1]
 data16[c('Individual', 'bodypart', 'metric')] <- str_split_fixed(data16$individuals, '/', 3)
 data16 <- data16[,-1]
 
-
-###### combining the bodyparts together 
-
-#head$x <- as.numeric(head$x)
-#boxplot(head$x,main= "Rmse of Head")
-
 ######## Do a scaterplot with the iterations 
 
 data1<-subset(data1, metric !="conf")

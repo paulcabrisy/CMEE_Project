@@ -365,15 +365,6 @@ data15 <- data15[,-1]
 
 data16[c('Individual', 'bodypart', 'metric')] <- str_split_fixed(data16$individuals, '/', 3)
 data16 <- data16[,-1]
-############ Now remove the rows with the confidence value to just have the RMSE 
-
-#filtered to one set of data and did boxplot
-#head1 <- data1 %>% filter(bodypart=="Head", metric=="rmse")
-#head2 <- data2 %>% filter(bodypart=="Head", metric=="rmse")
-#head3 <- data3 %>% filter(bodypart=="Head", metric=="rmse")
-#head4 <- data4 %>% filter(bodypart=="Head", metric=="rmse")
-#head5 <- data5 %>% filter(bodypart=="Head", metric=="rmse")
-#head6 <- data6 %>% filter(bodypart=="Head", metric=="rmse")
 
 ######## Do a scaterplot with the iterations 
 
